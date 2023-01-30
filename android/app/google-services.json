@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "582067957962",
+    "project_id": "connect-crowd-e2a97",
+    "storage_bucket": "connect-crowd-e2a97.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:582067957962:android:c232963fc5a4d274504433",
+        "android_client_info": {
+          "package_name": "com.example.connect_crowd"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "582067957962-93f7oifj9sb2pjl3fgc1lfoi5q118jqb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCOrSIAvpUB8JN6i_faaDvlA_PZPc1V0Jw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "582067957962-93f7oifj9sb2pjl3fgc1lfoi5q118jqb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
