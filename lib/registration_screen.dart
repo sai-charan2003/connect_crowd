@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'chat_screen.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class registration_screen extends StatefulWidget {
   const registration_screen({Key? key}) : super(key: key);
@@ -14,6 +15,7 @@ class registration_screen extends StatefulWidget {
 
 class _registration_screenState extends State<registration_screen> {
   bool _saving=false;
+  late var errormessage;
 
 
   final auth=FirebaseAuth.instance;
@@ -51,9 +53,9 @@ class _registration_screenState extends State<registration_screen> {
                       email=value;
 
                     },
-                      style: TextStyle(color: Colors.black),decoration: InputDecoration(prefixIcon: Icon(Icons.account_circle_outlined,color: Colors.black),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0),borderSide: BorderSide(color:Colors.blue,width:2.0)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0),borderSide: BorderSide(color:Colors.blue,width: 3.0 ))
+                      style: TextStyle(color: Colors.black),decoration: InputDecoration(labelText:"Email Address",labelStyle:TextStyle(color: Colors.blue),floatingLabelBehavior: FloatingLabelBehavior.never,prefixIcon: Icon(Icons.email_outlined,color: Colors.black),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0),borderSide: BorderSide(color:Colors.blue,width:3.0)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0),borderSide: BorderSide(color:Colors.blue,width: 3.0 ))
 
                   ) ),
                 ),
@@ -64,9 +66,9 @@ class _registration_screenState extends State<registration_screen> {
                     password=value;
                   },
                   obscureText: true,
-                    style: TextStyle(color: Colors.black),decoration: InputDecoration(prefixIcon: Icon(Icons.password_outlined,color: Colors.black),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0),borderSide: BorderSide(color:Colors.blue,width:2.0)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0),borderSide: BorderSide(color:Colors.blue,width: 3.0 ))
+                    style: TextStyle(color: Colors.black),decoration: InputDecoration(labelText:"Password",labelStyle:TextStyle(color: Colors.blue),floatingLabelBehavior: FloatingLabelBehavior.never,prefixIcon: Icon(Icons.password_outlined,color: Colors.black),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0),borderSide: BorderSide(color:Colors.blue,width:3.0)),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10.0),borderSide: BorderSide(color:Colors.blue,width: 3.0 ))
 
                 ) ),),
 
@@ -81,11 +83,12 @@ class _registration_screenState extends State<registration_screen> {
                     try{
                       final newuser=await auth.createUserWithEmailAndPassword(email: email, password: password);
                       if(newuser!=null){
-                        Navigator.pushNamed(context, chat_screen.id);
+                        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>chat_screen()), (route) => false);
                       }
                     }
                     catch(e){
-                      print(e);
+                      errormessage=e.toString();
+                      Fluttertoast.showToast(msg: errormessage,gravity: ToastGravity.CENTER);
                     }
 
 

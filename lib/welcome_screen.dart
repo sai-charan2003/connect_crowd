@@ -6,6 +6,7 @@ import 'registration_screen.dart';
 import 'main.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 
+
 class welcome_screen extends StatefulWidget {
   const welcome_screen({Key? key}) : super(key: key);
   static const String pageid='welcome_screen';
@@ -19,11 +20,24 @@ class _welcome_screenState extends State<welcome_screen> with SingleTickerProvid
   late AnimationController controller;
   late Animation animation;
   @override
+  List<MaterialColor> colorizeColors = [
+    Colors.purple,
+    Colors.blue,
+    Colors.yellow,
+    Colors.red,
+  ];
+
+   TextStyle colorizeTextStyle = TextStyle(
+    fontSize: 30.0,
+    fontWeight: FontWeight.bold
+    //fontFamily: 'Horizon',
+  );
   void initState() {
     // TODO: implement initState
     controller=AnimationController(vsync: this,duration: Duration(seconds: 1));
     //animation= CurvedAnimation(parent: controller, curve: Curves.decelerate);
     animation=ColorTween(begin: Colors.blue[300],end: Colors.white).animate(controller);
+
 
 
     controller.forward();
@@ -61,7 +75,15 @@ class _welcome_screenState extends State<welcome_screen> with SingleTickerProvid
                   ),
                 ),
                 SizedBox(width: 20.0,),
-                TyperAnimatedTextKit( text: ['Connect Crowd'],textStyle: TextStyle(color: Colors.black,fontSize: 30.0,fontWeight: FontWeight.bold,),)
+                AnimatedTextKit( animatedTexts: [
+                  ColorizeAnimatedText(
+                  'Connect Crowd',
+                  textStyle: colorizeTextStyle,
+                  colors: colorizeColors,
+                  )
+  ]
+
+                ),
               ],
             ),
             SizedBox(height: 70.0,),
@@ -69,15 +91,15 @@ class _welcome_screenState extends State<welcome_screen> with SingleTickerProvid
               borderRadius: BorderRadius.circular(10.0),
                 color: Colors.blue,
                 child: MaterialButton(onPressed: (){
-                  Navigator.pushNamed(context, login_screen.pageid);
-                },child: Text('Login'),enableFeedback: true)),
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>login_screen()));
+                },child: Text('Login',style: TextStyle(color: Colors.white),),enableFeedback: true)),
             SizedBox(height: 50.0,),
             Material(
                 borderRadius: BorderRadius.circular(10.0),
                 color: Colors.blueAccent,
                 child: MaterialButton(onPressed: (){
-                  Navigator.pushNamed(context, registration_screen.pageid);
-                },child: Text('Register'),enableFeedback: true))
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>registration_screen()));
+                },child: Text('Register',style: TextStyle(color: Colors.white),),enableFeedback: true))
 
         ],),
       )

@@ -1,9 +1,16 @@
-// import 'dart:html';
+
 
 import 'package:connect_crowd/welcome_screen.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+
 class chat_screen extends StatefulWidget {
   const chat_screen({Key? key}) : super(key: key);
   static const String id='chat_screen';
@@ -13,10 +20,17 @@ class chat_screen extends StatefulWidget {
 }
 
 class _chat_screenState extends State<chat_screen> {
+  late SharedPreferences logindata;
   final _auth=FirebaseAuth.instance;
+  FirebaseStorage firebaseStorage=FirebaseStorage.instance;
+  var imageurl;
+  bool ifimage=false;
+
+
   final _firestore=FirebaseFirestore.instance;
   late User loggedinuser;
   late String messagetext;
+
   final messageTextController = TextEditingController();
   @override
   void initState() {
@@ -39,6 +53,27 @@ class _chat_screenState extends State<chat_screen> {
 
 
   }
+  Future<void> getimage()async{
+    final picker=ImagePicker();
+    final XFile? pickedimage=await picker.pickImage(source: ImageSource.gallery);
+    if(pickedimage==null){
+      imageurl=null;
+    }
+    else{
+      String filename=pickedimage.name;
+      File imagepath=File(pickedimage.path);
+
+      var uploadimage=await firebaseStorage.ref(filename).putFile(imagepath);
+      imageurl=await uploadimage.ref.getDownloadURL();
+      ifimage=true;
+      //String message=null;
+      await _firestore.collection('messages').add({'imageurl':imageurl,'message':"",'user':loggedinuser.email,'time':FieldValue.serverTimestamp()});
+
+    }
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -48,8 +83,14 @@ class _chat_screenState extends State<chat_screen> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.blue,
         shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(20.0))),
-        actions: [IconButton(onPressed: (){
-          Navigator.pushNamed(context, welcome_screen.pageid);
+        actions: [IconButton(onPressed: () async {
+          _auth.signOut();
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>welcome_screen()), (route) => false);
+          final prefs = await SharedPreferences.getInstance();
+
+          
+          prefs.setBool('isLoggedIn',false);
+          //logindata.setBool('login', true);
         }, icon: Icon(Icons.logout))],
       ),
     body: Padding(
@@ -60,6 +101,10 @@ class _chat_screenState extends State<chat_screen> {
         children: <Widget>[
           StreamBuilder<QuerySnapshot>(stream: _firestore.collection('messages').orderBy('time').snapshots(),
             builder: (context,snapshot) {
+            if(snapshot.connectionState==ConnectionState.waiting){
+              CircularProgressIndicator();
+            }
+
               if (snapshot.hasData) {
                 final messages = snapshot.data!.docs.reversed;
                 List<Messagebubble> messageWidgets=[];
@@ -67,10 +112,11 @@ class _chat_screenState extends State<chat_screen> {
                   var data=message.data() as Map;
                   var messagetext=data['message'];
                   var messageuser=data['user'];
+                  var imageURL=data['imageurl'];
                   var user=loggedinuser.email;
-
-                    final messagewidget = Messagebubble(messageuser, messagetext,user==messageuser);
-                    messageWidgets.add(messagewidget);
+                  final messagewidget = Messagebubble(
+                      messageuser,imageURL,messagetext, user == messageuser);
+                  messageWidgets.add(messagewidget);
 
 
                 }
@@ -104,7 +150,7 @@ class _chat_screenState extends State<chat_screen> {
 
                       messagetext=value;
                     },
-                    style: TextStyle(color:Colors.black),decoration: InputDecoration(prefixIcon: Icon(Icons.chat,color: Colors.black,),
+                    style: TextStyle(color:Colors.black),decoration: InputDecoration(
                     enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0)
                     ,borderSide: BorderSide(width: 3.0,color: Colors.black),
 
@@ -112,17 +158,26 @@ class _chat_screenState extends State<chat_screen> {
                     focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0),borderSide: BorderSide(width: 3.0,color:Colors.black))
                   ),
 
+
                   ),
                 ),
 
 
 
+
               ),
               TextButton(onPressed: (){
-                _firestore.collection('messages').add({'message':messagetext,'user':loggedinuser.email,'time':FieldValue.serverTimestamp()});
+
+                _firestore.collection('messages').add({'message':messageTextController.text,'user':loggedinuser.email,'time':FieldValue.serverTimestamp(),'imageurl':""});
                 messageTextController.clear();
 
-              }, child: Text('Send'))
+              }, child: Text('Send')),
+              IconButton(onPressed: (){
+
+                getimage();
+
+
+              }, icon: Icon(Icons.image,color: Colors.black,))
             ],
 
           ),
@@ -134,10 +189,13 @@ class _chat_screenState extends State<chat_screen> {
   }
 }
 class Messagebubble extends StatelessWidget {
-  Messagebubble(this.user,this.message,this.isme);
+  Messagebubble(this.user,this.image,this.message,this.isme);
+
   final String user;
   final String message;
   final bool isme;
+  final String image;
+
 
   @override
   Widget build(BuildContext context) {
@@ -156,8 +214,9 @@ class Messagebubble extends StatelessWidget {
             color: isme ?Colors.blue: Colors.green,
               child: Padding(
                 padding: const EdgeInsets.all(10.0),
-                child: Text(message,style: TextStyle(color: Colors.white,fontWeight: FontWeight.w900),),
-              )),
+                child:image!=""?Container(child: CachedNetworkImage(imageUrl: image)): Text(message,style: TextStyle(color: Colors.white,fontWeight: FontWeight.w900),
+
+              ))),
         ],
       ),
     );
